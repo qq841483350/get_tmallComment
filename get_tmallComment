@@ -1,0 +1,28 @@
+#coding:utf8
+#采集天猫宝贝评论：多于5个字
+import urllib,re,requests
+def get_taobao_pinglun(url):
+    id=re.findall('&id=(\d+)&[\s\S]*?&user_id=(\d+)&',url)[0]
+    if id:
+        url="https://rate.tmall.com/list_detail_rate.htm?itemId=%s&sellerId=%s&currentPage=1"%(id[0],id[1])
+        html=requests.get(url).text
+        total_pl=re.findall('"total":(\d+),"used',html)[0]
+        # print total_pl #总页数
+        fynum=int(total_pl)/20   #分页数量
+
+        f=open('pinglun.txt','a')
+        for num in range(1,fynum+1):
+            fyurl="https://rate.tmall.com/list_detail_rate.htm?itemId=%s&sellerId=%s&currentPage=%s"%(id[0],id[1],num)
+            # print fyurl #分页URL
+            html=requests.get(fyurl).text
+            pls=re.findall('rateContent":"(.*?)","rat',html)
+            if pls:
+                for pl in pls:
+                    if len(pl)>15:
+                        f.write(pl.encode('utf8')+'\n')
+                        print pl
+            
+if __name__=="__main__":
+    url="https://detail.tmall.com/item.htm?spm=a220m.1000858.1000725.5.3acb27f35OHnt2&id=545936175000&skuId=3296504520945&areaId=410100&user_id=356060330&cat_id=50025135&is_b=1&rn=4166cb05998cf2d1eec5ccfc5b7f7318"
+    url=raw_input("请输入天猫宝贝详情页URL,回车继续:")
+    get_taobao_pinglun(url)
